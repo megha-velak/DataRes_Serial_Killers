@@ -1,0 +1,220 @@
+---
+title: "serialk"
+author: "Jodie"
+date: "2023-05-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+df <- read.csv("/Users/jojoc/Downloads/serial_k.csv")
+tail(df)
+```
+
+```{r}
+
+# df_victim_counts <- table(df$Victim.Race)
+levels_relationship <- c("Unknown", "Stranger") # likely to be serial killer data 
+df <- df[df$Relationship %in% levels_relationship, ]
+df <- df[df$Perpetrator.Sex != "Unknown", ] # remove unknown for perpetrator.sex
+df <- df[df$Perpetrator.Race != "Unknown", ] # remove unknown for perpetrator.sex
+df <- df[df$Victim.Race != "Unknown", ] # remove unknown for perpetrator.sex
+
+tail(df)
+ # >2 victims indicate serial killer activity
+df <- df[df$Perpetrator.Count == 1, ] # serial killers typically act alone
+tail(df)
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+df_perp_counts <- table(df$Perpetrator.Race)
+barplot(df_perp_counts, main = "Distribution of Races for Perpetrators", xlab = "Race", ylab = "Count")
+```
+
+```{r}
+# sum up victims for each race category group by every 20 years
+barplot(df_victim_counts, col = "purple", main = "Distribution of Races for Victims", xlab = "Race", ylab = "Count")
+#barplot(df_perp_counts, add = TRUE) can't sueprimpose
+
+
+```
+```{r}
+#IN GENERAL, OVERALL IN THE UNITED STATES
+# 4 pie charts, each pie chart representing perpetrator race 
+# make separate dataframes for each perpetrator race. (4 df, a df for each perpetrator race)
+
+white_perp <- subset(df, df$Perpetrator.Race == "White")
+white_perp
+
+freq_vic <- table(white_perp$Victim.Race)
+freq_vic
+
+
+#freq_state <- table(white_perp$State)
+#freq_state
+#barplot(freq_state, main = "Where are White Perpetrators from?")
+
+pie(freq_vic, col = c("red", "blue", "green", "orange"))
+title(main = "White Perpetrators' Victim Demographic", cex.main = 1)
+
+make_pie <- function(Perp_race, title_of_chart) {
+  white_perp <- subset(df, df$Perpetrator.Race == Perp_race)
+  freq_vic <- table(white_perp$Victim.Race)
+
+  pie(freq_vic, col = c("red", "blue", "green", "orange"))
+  title(main = title_of_chart, cex.main = 1)
+}
+
+perp_white <- make_pie("White", "White Perpetrators' Victim Demographic")
+perp_white
+
+perp_black <- make_pie("Black", "Black Perpetrators' Victim Demographic")
+perp_black
+
+perp_asian <- make_pie("Asian/Pacific Islander", "Asian/Pacific Islander Perpetrators' Victim Demographic")
+perp_asian
+
+perp_native <- make_pie("Native American/Alaska Native", "Native Perpetrators' Victim Demographic")
+perp_native
+
+# maybe a map of united states and plot 4 different colors representing perpetrators' races of where they tend to kill
+
+#race_counts <- table(df$Perpetrator.Race, df$Victim.Race)
+#heatmap(race_counts, col = heat.colors(8), Rowv = NA, Colv = NA,
+#        xlab = "Race of Perpetrator", ylab = "Race of Victim",
+#        main = "Race of Perpetrator vs. Race of Victim")
+```
+
+```{r}
+# IN LOS ANGELES
+# in Demogrpahics of victims by race of perpetrator in Los Angeles
+# relationship in gender between male and female serial killers 
+# Los Angeles has the most number of homicides/serial killers
+freq_city <- table(df$City)
+max_category <- names(freq_city)[which.max(freq_city)]
+max_category # Los Angeles has the most number of homicides
+
+white_perp <- subset(df, df$Perpetrator.Race == "Black")
+white_perp2 <- subset(white_perp, white_perp$City == "Los Angeles")
+  freq_vic <- table(white_perp2$Victim.Race)
+  freq_vic
+
+make_pie <- function(Perp_race, title_of_chart) {
+  white_perp1 <- subset(df, df$Perpetrator.Race == Perp_race)
+  white_perp3 <- subset(white_perp1, white_perp1$City == "Los Angeles")
+  freq_vic <- table(white_perp3$Victim.Race)
+
+  pie(freq_vic, col = c("red", "blue", "green", "orange"))
+  title(main = title_of_chart, cex.main = 1)
+}
+
+perp_white <- make_pie("White", "White Perpetrators' Victim Demographic")
+perp_white
+
+perp_black <- make_pie("Black", "Black Perpetrators' Victim Demographic")
+perp_black
+
+perp_asian <- make_pie("Asian/Pacific Islander", "Asian/Pacific Islander Perpetrators' Victim Demographic")
+perp_asian
+
+perp_native <- make_pie("Native American/Alaska Native", "Native Perpetrators' Victim Demographic")
+perp_native
+
+```
+Taking reports of homicides from LA, we can see that in general, perpetrators tend to target victims of their own race, except for Native Americans who tend to target White people. This could mean they have motivations related to race or perhaps, the prejudice that exists within their area mean they have a better chance of luring a victim that is of their own race. For example, white serial killers would "stand out" if they targeted black people or prowled around black neighborhoods. Black people may not be as willing to trust someone who's white or of another race that approaches them. They may be more likely to trust a black person, making black serial killers likely to target them. This may explain why Samuel Little, who was black, tend to kill black people--he had a higher chance of gaining the trust of his black victims. This might also suggest that serial killers tend to prowl around ethnically diverse areas where racial prejudice is not as present such as big cities or hunt in areas where their major demographic is their own race so that they can keep a low profile. 
+
+```{r}
+# relationship in gender between male and female serial killers 
+# do this preprocessing before the correlation matrix
+
+
+killers_by_gender <- table(df$Perpetrator.Sex, df$Victim.Sex)
+killers_by_gender
+
+```
+
+```{r}
+# relationship in gender between male and female serial killers 
+
+ggplot(df, aes(x = Perpetrator.Sex, fill = Victim.Sex)) +
+  geom_bar(position = "fill") +
+  xlab("Serial Killer Sex") +
+  ylab("Proportion") +
+  ggtitle("Distribution of Serial Killers by their Sex and Sex of Victims ")
+```
+Here, we look at the overall relationship between the sexes of serial killers and victims. For female serial killers, there is a higher proportion of their victims being male than female. This makes sense as female killers are known to kill men for revenge or financial/material gain. They also tend to target men that have close relations to them, particularly romantic connections, for the money. Interestingly, there is a higher proportion of female perpetrators killing females than male perpetrators killing females. And more male perpetrators with male victims than female victims. This contrasts popular belief that male perpetrators tend to target females for sexual lust, which raises the question what motives do male serial killers have for killing men. Could it also be sexual lust or something else? Perhaps this shift from male serial killers targeting females to targeting males have evolved over the years.
+```{r}
+# Distribution of age of killer
+# or a scatter plot (age of serial killer as x axis and age of victim as they axis)
+# roughly equal number of people in each group
+num_ranges <- 3
+cut_points <- quantile(df$Perpetrator.Age, probs = seq(0, 1, length.out = num_ranges + 1), na.rm = TRUE)
+age_ranges <- cut(df$Perpetrator.Age, breaks = cut_points, include.lowest = TRUE)
+ranges <- levels(age_ranges)
+ranges
+df$Perpetrator.Age_Range <- age_ranges
+freq <- table(df$Perpetrator.Age_Range)
+freq
+age_ranges<-c(19, 30, 40, 60)
+age_labels<-c("19-30", "31-40", "41-60")
+age_categories <- cut(df$Perpetrator.Age, breaks = age_ranges, labels = age_labels, right = FALSE)
+freq<-table(age_categories)
+freq
+```
+
+```{r}
+# Distribution of age of victims
+# or a scatter plot (age of serial killer as x axis and age of victim as they axis)
+# roughly equal number of people in each group
+ranges <- 4
+cut_points_v <- quantile(df$Victim.Age, probs = seq(0, 1, length.out = ranges + 1), na.rm = TRUE)
+age_ranges_v <- cut(df$Victim.Age, breaks = cut_points_v, include.lowest = TRUE)
+ranges_v <- levels(age_ranges_v)
+ranges_v
+df$Victim.Age_Range <- age_ranges_v
+age_ranges_v<-c(19, 30, 40, 60, 80)
+age_labels_v<-c("19-30", "31-40", "41-60", "61-80")
+age_categories_v <- cut(df$Victim.Age, breaks = age_ranges_v, labels = age_labels_v, right = FALSE)
+freq_v<-table(age_categories_v)
+freq_v
+
+freq2<-table(age_categories, age_categories_v)
+freq2
+```
+
+```{r}
+# Distribution of age of victims vs age of killer, bar plots 
+# or a scatter plot (age of serial killer as x axis and age of victim as they axis)
+# roughly equal number of people in each group
+freq <- table(df$Perpetrator.Age_Range, df$Victim.Age_Range)
+freq
+
+freq <- data.frame()
+
+ggplot(df, aes(x = ranges, y = ranges_v, size = freq)) +
+  geom_point() +
+  scale_size(range = c(1, 4))  # Adjust the range to control the size of the bubbles
+
+df
+
+```
+Serial killers tend to be between 19 and 30 years old. A person is less likely to be a serial killer if they are older than 40. Most serial killers, regardless of the age group, target people 30 and under. This makes sense as serial killers are known to target younger, vulnerable people like sex workers who have cut off ties with family. Thus, their victims are not as likely to be reported missing by their families, making it easy for serial killers to escape unscathed. Thus, targeting sex workers makes it easier for them to escape   target victims of the same age group as them. Serial killers that are 21 and below target people 21 and below, as seen by the blue bar overtaking all other bars in the [0,17] and [17-21] perpetrator age categories. Similarily, serial killers in their 20's target people that are also in their 20's.[make a graph comparing victims' age group]
+```{r}
+# processing the data more to tailor to serial killer data--definition: 3 or more victims
+
+
+```
